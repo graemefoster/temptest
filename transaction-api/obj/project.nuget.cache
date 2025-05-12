@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "v7+y25M24Lw=",
+  "success": true,
+  "projectFilePath": "/Users/graemefoster/BankingApp/transaction-api/transaction-api.csproj",
+  "expectedPackageFiles": [
+    "/Users/graemefoster/.nuget/packages/microsoft.aspnetcore.openapi/9.0.3/microsoft.aspnetcore.openapi.9.0.3.nupkg.sha512",
+    "/Users/graemefoster/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
