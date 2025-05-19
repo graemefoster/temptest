@@ -162,7 +162,7 @@ namespace backend_api.Controllers
                         CustomerId = customerId,
                         AccountId = accountId,
                         Date = date.AddHours(8),
-                        MerchantName = "Westpac",
+                        MerchantName = "MyBank",
                         TransactionType = "Debit",
                         Amount = 1700
                     });
