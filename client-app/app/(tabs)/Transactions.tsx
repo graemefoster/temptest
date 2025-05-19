@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: 'red',
         padding: 16,
     },
     transactionContainer: {
