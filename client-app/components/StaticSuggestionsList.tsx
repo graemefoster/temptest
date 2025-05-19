@@ -24,7 +24,7 @@ export const StaticSuggestionsList: React.FC<StaticSuggestionsListProps> = ({ su
         keyExtractor={(item) => item.name}
         renderItem={({ item }) => (
           <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee', alignSelf: 'stretch' }}>
-            <ThemedText>{item.name}</ThemedText>
+            <ThemedText style={{color: 'black'}}>{item.name}</ThemedText>
           </View>
         )}
         scrollEnabled={false}

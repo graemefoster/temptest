@@ -13,7 +13,7 @@ namespace backend_api.Controllers
             public string CustomerId { get; set; }
             public string AccountId { get; set; }
             public DateTime Date { get; set; }
-            public string Description { get; set; }
+            public string MerchantName { get; set; }
             public string TransactionType { get; set; }
             public decimal Amount { get; set; }
         }
@@ -43,7 +43,7 @@ namespace backend_api.Controllers
                         CustomerId = customerId,
                         AccountId = accountId,
                         Date = date.AddHours(9),
-                        Description = "Factory Pay",
+                        MerchantName = "Acme Corp",
                         TransactionType = "Credit",
                         Amount = pay
                     });
@@ -59,7 +59,7 @@ namespace backend_api.Controllers
                         CustomerId = customerId,
                         AccountId = accountId,
                         Date = date.AddHours(7 + random.NextDouble()),
-                        Description = $"Breakfast at {place}",
+                        MerchantName = place,
                         TransactionType = "Debit",
                         Amount = Math.Round((decimal)(7 + random.NextDouble() * 3), 2)
                     });
@@ -75,7 +75,7 @@ namespace backend_api.Controllers
                         CustomerId = customerId,
                         AccountId = accountId,
                         Date = date.AddHours(12 + random.NextDouble()),
-                        Description = $"Lunch groceries at {place}",
+                        MerchantName = place,
                         TransactionType = "Debit",
                         Amount = Math.Round((decimal)(10 + random.NextDouble() * 10), 2)
                     });
@@ -90,7 +90,7 @@ namespace backend_api.Controllers
                         CustomerId = customerId,
                         AccountId = accountId,
                         Date = date.AddHours(18),
-                        Description = "AFL Ticket",
+                        MerchantName = "West Coast Eagles",
                         TransactionType = "Debit",
                         Amount = 40
                     });
@@ -108,7 +108,7 @@ namespace backend_api.Controllers
                         CustomerId = customerId,
                         AccountId = accountId,
                         Date = date.AddHours(hour + random.NextDouble()),
-                        Description = $"Petrol at {station}",
+                        MerchantName = station,
                         TransactionType = "Debit",
                         Amount = amount
                     });
@@ -127,7 +127,7 @@ namespace backend_api.Controllers
                             CustomerId = customerId,
                             AccountId = accountId,
                             Date = date.AddHours(19 + d + random.NextDouble()),
-                            Description = $"Drink at {pub}",
+                            MerchantName = pub,
                             TransactionType = "Debit",
                             Amount = drinkAmount
                         });
@@ -146,7 +146,7 @@ namespace backend_api.Controllers
                             CustomerId = customerId,
                             AccountId = accountId,
                             Date = date.AddHours(10 + random.NextDouble()),
-                            Description = $"{bill} Bill",
+                            MerchantName = bill,
                             TransactionType = "Debit",
                             Amount = Math.Round((decimal)(100 + random.NextDouble() * 200), 2)
                         });
@@ -162,7 +162,7 @@ namespace backend_api.Controllers
                         CustomerId = customerId,
                         AccountId = accountId,
                         Date = date.AddHours(8),
-                        Description = "Mortgage Payment",
+                        MerchantName = "Westpac",
                         TransactionType = "Debit",
                         Amount = 1700
                     });
@@ -193,6 +193,8 @@ namespace backend_api.Controllers
                 results = results.FindAll(t => t.Amount >= request.AmountLowLimit.Value);
             if (request.AmountHighLimit.HasValue)
                 results = results.FindAll(t => t.Amount <= request.AmountHighLimit.Value);
+            if (!string.IsNullOrWhiteSpace(request.MerchantName))
+                results = results.FindAll(t => string.Equals(t.MerchantName, request.MerchantName, StringComparison.InvariantCultureIgnoreCase));
 
             return Ok(results);
         }

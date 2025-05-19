@@ -1,42 +1,88 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Button, FlatList, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Transaction {
     id: string;
-    transactionType: string; // e.g. WITHDRAWAL ONLINE, DEPOSIT ONLINE
-    description: string; // e.g. 1728990 INTL pookie m
-    date: string; // e.g. 26 Feb 2014
-    amount: number; // positive for deposit, negative for withdrawal
+    transactionType: string;
+    merchantName: string;
+    date: string;
+    amount: number;
     balance: number;
 }
 
+interface TransactionFilters {
+    dateFrom?: Date | undefined;
+    dateTo?: Date | undefined;
+    accountId: string;
+    customerId: string;
+    merchantName: string;
+    transactionType: string;
+    amountLowLimit: number | null;
+    amountHighLimit: number | null;
+}
+
 export default function TransactionsScreen() {
+    const params = useLocalSearchParams();
+
+    // Helper to get yesterday's date (set to midnight)
+    const getYesterday = () => {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    };
+
+    // Default filters: yesterday's transactions
+    const [filters, setFilters] = useState<TransactionFilters>({
+        dateFrom: getYesterday(),
+        dateTo: getYesterday(),
+        accountId: '',
+        customerId: '',
+        merchantName: '',
+        transactionType: '',
+        amountLowLimit: null,
+        amountHighLimit: null,
+    });
+
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
-    const [filters, setFilters] = useState({
-        DateFrom: undefined,
-        DateTo: undefined,
-        AccountId: '',
-        CustomerId: '',
-        TransactionType: '',
-        AmountLowLimit: '',
-        AmountHighLimit: '',
-    });
+
+    // Update filters if params.filter changes (e.g. on navigation)
+    useEffect(() => {
+        if (params.filter) {
+            const filterParams = JSON.parse(params.filter as string) as TransactionFilters;
+            setFilters({ ...filterParams });
+            console.log('Updated filters from params:', filterParams);
+        }
+    }, [params.filter]);
 
     useEffect(() => {
+        setLoading(true);
+        console.log('Fetching transactions with filters:', filters);
+
         fetch('http://localhost:5067/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(filters),
         })
-            .then((res) => res.json())
+            .then(async (res) => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok:' + JSON.stringify(await res.text()));
+                }
+                const results = res.json();
+                return results;
+            })
             .then((data) => setTransactions(data))
-            .catch(() => setTransactions([]))
+            .catch(e => {
+                console.error('Error fetching transactions:', e);
+                setTransactions([]);
+            })
             .finally(() => setLoading(false));
     }, [filters]);
 
@@ -44,7 +90,7 @@ export default function TransactionsScreen() {
         <View style={styles.transactionContainer}>
             <View style={{ flex: 1 }}>
                 <ThemedText style={styles.typeText}>{item.transactionType} {item.id}</ThemedText>
-                <ThemedText style={styles.detailsText}>{item.description}</ThemedText>
+                <ThemedText style={styles.detailsText}>{item.merchantName}</ThemedText>
                 <ThemedText style={styles.dateText}>{new Date(item.date).toDateString()}</ThemedText>
             </View>
             <View style={styles.amountContainer}>
@@ -65,49 +111,57 @@ export default function TransactionsScreen() {
                         {/* Date From */}
                         <ThemedText>Date From</ThemedText>
                         <DateTimePicker
-                            value={filters.DateFrom ? new Date(filters.DateFrom) : new Date()}
+                            value={filters.dateFrom ? new Date(filters.dateFrom) : new Date()}
                             mode="date"
                             display="default"
-                            onChange={(_, date) => setFilters(f => ({ ...f, DateFrom: date }))}
+                            onChange={(_, date) => setFilters(f => ({ ...f, dateFrom: date }))}
                         />
                         {/* Date To */}
                         <ThemedText>Date To</ThemedText>
                         <DateTimePicker
-                            value={filters.DateTo ? new Date(filters.DateTo) : new Date()}
+                            value={filters.dateTo ? new Date(filters.dateTo) : new Date()}
                             mode="date"
                             display="default"
-                            onChange={(_, date) => setFilters(f => ({ ...f, DateTo: date }))}
+                            onChange={(_, date) => setFilters(f => ({ ...f, dateTo: date }))}
                         />
                         {/* Account ID */}
                         <ThemedText>Account ID</ThemedText>
                         <TextInput
                             style={styles.input}
-                            value={filters.AccountId}
-                            onChangeText={v => setFilters(f => ({ ...f, AccountId: v }))}
+                            value={filters.accountId}
+                            onChangeText={v => setFilters(f => ({ ...f, accountId: v }))}
                             placeholder="Account ID"
                         />
                         {/* Customer ID */}
                         <ThemedText>Customer ID</ThemedText>
                         <TextInput
                             style={styles.input}
-                            value={filters.CustomerId}
-                            onChangeText={v => setFilters(f => ({ ...f, CustomerId: v }))}
+                            value={filters.customerId}
+                            onChangeText={v => setFilters(f => ({ ...f, customerId: v }))}
                             placeholder="Customer ID"
+                        />
+                        {/* Customer ID */}
+                        <ThemedText>Merchant Name</ThemedText>
+                        <TextInput
+                            style={styles.input}
+                            value={filters.merchantName}
+                            onChangeText={v => setFilters(f => ({ ...f, merchantName: v }))}
+                            placeholder="Merchant Name"
                         />
                         {/* Transaction Type */}
                         <ThemedText>Transaction Type</ThemedText>
                         <TextInput
                             style={styles.input}
-                            value={filters.TransactionType}
-                            onChangeText={v => setFilters(f => ({ ...f, TransactionType: v }))}
+                            value={filters.transactionType}
+                            onChangeText={v => setFilters(f => ({ ...f, transactionType: v }))}
                             placeholder="Type (e.g. DEPOSIT)"
                         />
                         {/* Amount Low Limit */}
                         <ThemedText>Amount Low Limit</ThemedText>
                         <TextInput
                             style={styles.input}
-                            value={filters.AmountLowLimit}
-                            onChangeText={v => setFilters(f => ({ ...f, AmountLowLimit: v }))}
+                            value={filters.amountLowLimit !== null && filters.amountLowLimit !== undefined ? String(filters.amountLowLimit) : ''}
+                            onChangeText={v => setFilters(f => ({ ...f, amountLowLimit: v === '' ? null : Number(v) }))}
                             placeholder="Min Amount"
                             keyboardType="numeric"
                         />
@@ -115,8 +169,8 @@ export default function TransactionsScreen() {
                         <ThemedText>Amount High Limit</ThemedText>
                         <TextInput
                             style={styles.input}
-                            value={filters.AmountHighLimit}
-                            onChangeText={v => setFilters(f => ({ ...f, AmountHighLimit: v }))}
+                            value={filters.amountHighLimit !== null && filters.amountHighLimit !== undefined ? String(filters.amountHighLimit) : ''}
+                            onChangeText={v => setFilters(f => ({ ...f, amountHighLimit: v === '' ? null : Number(v) }))}
                             placeholder="Max Amount"
                             keyboardType="numeric"
                         />

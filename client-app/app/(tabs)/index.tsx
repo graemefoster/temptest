@@ -64,7 +64,7 @@ export default function HomeScreen() {
         const aiData = suggestions[0];
         const staticData = suggestions[1];
 
-        console.log('AI Suggestions:', aiData);
+        console.log('AI Suggestions:', JSON.stringify(aiData, null, 2));
         console.log('Static Suggestions:', staticData);
 
         // Check if the response is valid
@@ -128,7 +128,7 @@ export default function HomeScreen() {
         {/* Row of small buttons - now horizontally scrollable */}
         <View style={{ width: '100%', maxWidth: 400 }}>
           <FlatList
-            data={['Top', 'Accounts', 'Payments', 'Transactions']}
+            data={['Top', 'Accounts', 'Payments', 'Transactions', 'Loans']}
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
               <View style={styles.buttonWrapper}>
